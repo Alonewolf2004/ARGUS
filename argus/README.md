@@ -1,4 +1,4 @@
-# ARGUS 
+# ARGUS (The All-Seeing Scanner)
 
 A high-performance, asynchronous port scanner written in Python, **inspired by** core Nmap functionality with a modern codebase.
 
@@ -25,7 +25,7 @@ A high-performance, asynchronous port scanner written in Python, **inspired by**
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/Alonewolf2004/ARGUS.git
+    git clone https://github.com/argus-scanner/argus.git
     cd argus
     ```
 
@@ -66,9 +66,10 @@ Scan Results for scanme.nmap.org (OS: Ubuntu Linux)
 ## 📂 Project Structure
 
 ```text
-nmap_replica/
-├── __init__.py
-├── main.py       # Entry point
+argus/
+    __init__.py
+    __main__.py
+       # Entry point
 ├── scanner.py    # Core Async Scanner Logic & TCP State Machine
 ├── analyzer.py   # Regex & Protocol Probing Logic
 ├── ui.py         # Rich Console & Table Rendering

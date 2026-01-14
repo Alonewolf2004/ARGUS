@@ -1,4 +1,31 @@
-from typing import List
+import re
+from typing import List, Set
+from hashlib import sha256
+
+class BloomFilter:
+    """
+    Probabilistic data structure for O(1) membership testing.
+    False Positive Rate ~1% with default size.
+    """
+    def __init__(self, size=10000, hash_count=3):
+        self.size = size
+        self.hash_count = hash_count
+        self.bits = [False] * size
+
+    def add(self, item):
+        for i in range(self.hash_count):
+            # Create unique hash for each seed 'i' using item string
+            digest = sha256(f"{item}{i}".encode()).hexdigest()
+            idx = int(digest, 16) % self.size
+            self.bits[idx] = True
+
+    def __contains__(self, item):
+        for i in range(self.hash_count):
+            digest = sha256(f"{item}{i}".encode()).hexdigest()
+            idx = int(digest, 16) % self.size
+            if not self.bits[idx]:
+                return False
+        return True
 
 def parse_ports(port_input: str) -> List[int]:
     """

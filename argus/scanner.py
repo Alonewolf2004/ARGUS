@@ -1,14 +1,23 @@
 import asyncio
 import time
 import json
-from typing import List, Dict
+import heapq
+from typing import List, Dict, Generator
 from datetime import datetime
 from rich.progress import Progress
 
 from .analyzer import BannerAnalyzer
 from .ui import ScannerUI
+from .utils import BloomFilter
 
 class PortScanner:
+    # Priority Map: Lower number = Higher Priority (Scanned First)
+    COMMON_PORTS = {
+        80: 1, 443: 1, 8080: 1, 8000: 1, # Web
+        22: 2, 21: 2, 23: 2, 3389: 2,    # Admin
+        25: 3, 53: 3, 110: 3, 143: 3,    # Infra
+        3306: 3, 5432: 3, 6379: 3, 1433: 3 # DB
+    }
     def __init__(self, target_ip: str, ports: List[int], timeout: float = 1.5, concurrency: int = 100):
         self.target_ip = target_ip
         self.ports = ports
@@ -143,23 +152,70 @@ class PortScanner:
         
         progress_instance.advance(progress_task_id)
 
+    def _prioritize_ports(self) -> Generator[int, None, None]:
+        """
+        Yields ports in priority order using a Min-Heap.
+        """
+        heap = []
+        for port in self.ports:
+            # Default priority 999 for uncommon ports
+            priority = self.COMMON_PORTS.get(port, 999)
+            heapq.heappush(heap, (priority, port))
+        
+        while heap:
+            _, port = heapq.heappop(heap)
+            yield port
+
     async def run(self):
         """
-        Orchestrates the asynchronous scan.
+        Orchestrates the asynchronous scan using a Memory-Efficient Producer-Consumer pattern.
         """
         self.ui.display_start(self.target_ip, len(self.ports))
         
         start_time = time.time()
-        semaphore = asyncio.Semaphore(self.concurrency)
         
-        async def sem_scan(port, task_id, progress):
-            async with semaphore:
-                await self.scan_port(port, task_id, progress)
+        # O(N) Memory Optimization: use a bounded queue instead of creating all tasks at once
+        queue = asyncio.Queue(maxsize=self.concurrency * 2)
 
         with self.ui.create_progress() as progress:
             task_id = progress.add_task(f"[cyan]Scanning {len(self.ports)} ports...", total=len(self.ports))
-            tasks = [sem_scan(port, task_id, progress) for port in self.ports]
-            await asyncio.gather(*tasks)
+            
+            # Deduplication Filter (Bloom Filter)
+            scanned_filter = BloomFilter(size=len(self.ports) * 10 or 1000)
+
+            async def producer():
+                # Yield from priority generator (Heap Optimized)
+                for port in self._prioritize_ports():
+                    if port in scanned_filter:
+                        continue
+                    
+                    scanned_filter.add(port)
+                    await queue.put(port)
+                
+                # Send Sentinels to stop consumers
+                for _ in range(self.concurrency):
+                    await queue.put(None)
+
+            async def consumer():
+                while True:
+                    port = await queue.get()
+                    if port is None:
+                        queue.task_done()
+                        break
+                    
+                    # We don't need a semaphore here because the number of consumers IS the concurrency limit
+                    await self.scan_port(port, task_id, progress)
+                    queue.task_done()
+
+            # Start Producer
+            producer_task = asyncio.create_task(producer())
+            
+            # Start Consumers (Workers)
+            consumers = [asyncio.create_task(consumer()) for _ in range(self.concurrency)]
+            
+            # Wait for completion
+            await producer_task
+            await asyncio.gather(*consumers)
 
         end_time = time.time()
         duration = end_time - start_time
