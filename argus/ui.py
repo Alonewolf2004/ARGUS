@@ -13,7 +13,7 @@ class ScannerUI:
         self.console = console
 
     def display_welcome(self):
-        self.console.rule("[bold red]Modern Async Port Scanner[/bold red]")
+        self.console.rule("[bold red]ARGUS - The All-Seeing Scanner[/bold red]")
 
     def get_target(self):
         return Prompt.ask("[bold blue]Enter Target IP/Hostname[/bold blue]")

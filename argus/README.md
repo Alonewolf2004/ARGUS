@@ -1,4 +1,4 @@
-# Modern Async Port Scanner (Nmap Replica)
+# ARGUS (The All-Seeing Scanner)
 
 A high-performance, asynchronous port scanner written in Python, designed to replicate core Nmap functionality with a modern codebase.
 
@@ -25,8 +25,8 @@ A high-performance, asynchronous port scanner written in Python, designed to rep
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/nmap-replica.git
-    cd nmap-replica
+    git clone https://github.com/yourusername/argus.git
+    cd argus
     ```
 
 2.  **Install dependencies**:
@@ -39,7 +39,7 @@ A high-performance, asynchronous port scanner written in Python, designed to rep
 Run the scanner wrapper:
 
 ```bash
-python scanningtool.py
+python argus.py
 ```
 
 ### Interactive Mode

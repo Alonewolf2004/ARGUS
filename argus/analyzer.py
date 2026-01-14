@@ -14,7 +14,7 @@ class BannerAnalyzer:
         # HTTP Probes
         if port in [80, 8080, 8000, 443, 8443]:
             # Simple GET usually works best
-            return f"GET / HTTP/1.1\r\nHost: {target_ip}\r\nUser-Agent: Nmap-Replica/1.0\r\n\r\n".encode(), False
+            return f"GET / HTTP/1.1\r\nHost: {target_ip}\r\nUser-Agent: Argus/1.0\r\n\r\n".encode(), False
         
         # RTSP
         if port == 554:
