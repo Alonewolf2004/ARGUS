@@ -1,4 +1,4 @@
-# ARGUS (The All-Seeing Scanner)
+# ARGUS 
 
 A high-performance, asynchronous port scanner written in Python, designed to replicate core Nmap functionality with a modern codebase.
 
