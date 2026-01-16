@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "argus-scanner"
+version = "1.0.0"
+description = "High-performance async Python port scanner with honeypot detection"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Argus Contributors"}
+]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: System :: Networking",
+    "Topic :: Utilities",
+]
+keywords = [
+    "port-scanner",
+    "security",
+    "network",
+    "asyncio",
+    "honeypot-detection",
+    "pentesting",
+    "cybersecurity",
+]
+dependencies = [
+    "rich>=13.0.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/argus-port-scanner"
+Repository = "https://github.com/yourusername/argus-port-scanner"
+Issues = "https://github.com/yourusername/argus-port-scanner/issues"
+
+[project.scripts]
+argus = "argus.main:main"
+
+[tool.setuptools.packages.find]
+include = ["argus*"]
+
+[tool.setuptools.package-data]
+argus = ["data/*.json"]

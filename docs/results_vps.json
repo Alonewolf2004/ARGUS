@@ -1,0 +1,68 @@
+{
+    "target": "45.33.32.156",
+    "timestamp": "2026-01-16T13:45:09.118113",
+    "os_detected": "Ubuntu Linux",
+    "results": [
+        {
+            "port": 21,
+            "status": "open",
+            "service": "[FTP?]",
+            "banner": "",
+            "os_guess": "Ubuntu Linux"
+        },
+        {
+            "port": 22,
+            "status": "open",
+            "service": "[Unknown]",
+            "banner": "SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13",
+            "os_guess": "Ubuntu Linux"
+        },
+        {
+            "port": 80,
+            "status": "open",
+            "service": "[APACHE] 1.1",
+            "banner": "HTTP/1.1 200 OK\r\nDate: Fri, 16 Jan 2026 08:15:07 G",
+            "os_guess": "Ubuntu Linux"
+        },
+        {
+            "port": 554,
+            "status": "open",
+            "service": "[RTSP?]",
+            "banner": "",
+            "os_guess": "Ubuntu Linux"
+        }
+    ],
+    "honeypot_detection": {
+        "score": 0,
+        "confidence": "LOW",
+        "is_likely_honeypot": false,
+        "breakdown": {
+            "port_density": {
+                "score": 0,
+                "max": 40,
+                "open_port_count": 4,
+                "reason": "4 open ports is normal"
+            },
+            "banner_consistency": {
+                "score": 0,
+                "max": 30,
+                "os_families_detected": [
+                    "linux"
+                ],
+                "conflict_count": 0,
+                "conflicts": [],
+                "reason": "OS indicators are consistent"
+            },
+            "timing": {
+                "score": 0,
+                "max": 30,
+                "sample_count": 4,
+                "min_ms": 9.55,
+                "max_ms": 253.09,
+                "avg_ms": 157.3,
+                "issues": [],
+                "reason": "Timing patterns appear normal"
+            }
+        }
+    }
+}

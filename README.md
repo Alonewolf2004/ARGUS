@@ -8,45 +8,57 @@
 
 **Argus** is a high-performance, asynchronous port scanner built in Python. It combines speed with intelligence—featuring SSL/TLS support, smart banner grabbing, and built-in honeypot detection.
 
+## ⚠️ Legal Disclaimer
+
+> **This tool is for educational and authorized testing only.**  
+> Unauthorized scanning of networks you do not own or have permission to test may be illegal in your jurisdiction. Always obtain proper authorization before scanning.
+
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---------|-------------|
 | ⚡ **Async Scanning** | Concurrent scanning with configurable workers (up to 5000) |
-| 🔒 **SSL/TLS Support** | Proper HTTPS detection with SNI for CDNs like Akamai |
-| 🕵️ **Honeypot Detection** | Multi-layer scoring: port density, banner consistency, timing analysis |
+| 🔒 **SSL/TLS Support** | HTTPS detection with SNI for CDNs like Akamai |
+| 🕵️ **Honeypot Detection** | Multi-layer scoring: port density, banner consistency, timing |
 | 🎯 **Smart Banner Grabbing** | Optional `-sV` mode with multi-stage probing |
-| 📊 **JSON Output** | Machine-readable results with detailed honeypot breakdown |
-| 🗃️ **Community Databases** | Extensible JSON databases for service patterns and fingerprints |
+| 📊 **JSON Output** | Machine-readable results with honeypot breakdown |
 
 ---
 
-## 🚀 Quick Start
+## Installation
 
-### Installation
+### From PyPI (Recommended)
 
 ```bash
-git clone https://github.com/yourusername/argus.git
-cd argus
-pip install -r requirements.txt
+pip install argus-scanner
 ```
 
-### Basic Usage
+### From Source
+
+```bash
+git clone https://github.com/yourusername/argus-port-scanner.git
+cd argus-port-scanner
+pip install -e .
+```
+
+---
+
+## Usage
 
 ```bash
 # Simple scan
-python argus.py -t example.com -p 1-1000
+argus -t example.com -p 1-1000
 
-# Fast scan with output file
-python argus.py -t example.com -p 80,443,8080 -o results.json
+# Fast scan with JSON output
+argus -t example.com -p 80,443,8080 -o results.json
 
-# Deep service detection (-sV)
-python argus.py -t example.com -p 1-1000 -sV
+# Deep service detection
+argus -t example.com -p 1-1000 -sV
 ```
 
-### Command Line Options
+### Options
 
 | Option | Description |
 |--------|-------------|
@@ -54,129 +66,70 @@ python argus.py -t example.com -p 1-1000 -sV
 | `-p, --ports` | Ports to scan (e.g., `80,443` or `1-1000`) |
 | `-c, --concurrency` | Concurrent connections (default: 500) |
 | `-o, --output` | Save results to JSON file |
-| `-sV, --service-version` | Deep service detection with multi-stage probing |
+| `-sV` | Deep service detection with multi-stage probing |
 
 ---
 
-## 🏗️ Architecture
-
-```
-argus/
-├── scanner.py          # Core async scanning engine
-├── analyzer.py         # Banner analysis with Trie-based protocol detection
-├── honeypot_detector.py # Multi-layer honeypot scoring
-├── smart_banner.py     # Multi-stage probing (-sV mode)
-├── database.py         # Community database loader
-├── ui.py               # Rich terminal UI
-├── utils.py            # Bloom filter, rate limiter, caching
-├── config.py           # Pydantic configuration validation
-├── analyzers/          # Protocol-specific analyzers
-│   ├── http.py
-│   ├── ssh.py
-│   ├── database.py
-│   └── generic.py
-└── data/               # Community-contributed databases
-    ├── honeypot_ips.json
-    ├── service_patterns.json
-    └── os_fingerprints.json
-```
-
----
-
-## 🕵️ Honeypot Detection
+## Honeypot Detection
 
 Argus detects potential honeypots using multiple signals:
 
-| Check | Weight | Description |
-|-------|--------|-------------|
-| **Port Density** | 40 pts | Too many open ports (100+ = max score) |
-| **Banner Consistency** | 30 pts | OS mismatches (SSH says Linux, HTTP says Windows) |
-| **Response Timing** | 30 pts | Too-fast responses (<5ms) or zero jitter |
-| **Database Checks** | Bonus | Known honeypot IPs, suspicious service combos |
+| Check | Weight | What It Detects |
+|-------|--------|-----------------|
+| Port Density | 40 pts | Too many open ports (100+ = max) |
+| Banner Consistency | 30 pts | OS mismatches across services |
+| Response Timing | 30 pts | Too-fast or zero-jitter responses |
 
-**Confidence Levels:**
-- `LOW` (0-39): Likely legitimate
-- `MEDIUM` (40-59): Suspicious, investigate further  
-- `HIGH` (60+): Likely honeypot
+**Confidence Levels:** `LOW` (0-39), `MEDIUM` (40-59), `HIGH` (60+)
+
+See [docs/honeypot_detection.md](docs/honeypot_detection.md) for detailed scoring logic.
 
 ---
 
-## 🔬 Smart Banner Grabbing (`-sV`)
+## Example Output
 
-When enabled, Argus performs multi-stage probing:
-
-1. **Passive** – Wait for server greeting (2s timeout)
-2. **Null Probe** – Send `\r\n` to trigger response
-3. **Protocol Probe** – Port-specific request (USER for FTP, OPTIONS for RTSP)
-4. **Malformed Probe** – Invalid request to analyze error fingerprint
-
-This takes longer (~3x) but provides deeper service identification.
-
----
-
-## 📦 Community Databases
-
-Argus uses JSON databases that anyone can contribute to:
-
-### `data/honeypot_ips.json`
-Known honeypot IP ranges with scoring.
-
-### `data/service_patterns.json`
-Suspicious service combinations:
-```json
-{
-  "name": "Linux SSH + Windows IIS",
-  "requires": ["SSH", "IIS"],
-  "score": 35
-}
 ```
+╭────────────────────── Honeypot Detection ──────────────────────╮
+│ ✓ Honeypot Score: 5/100 (LOW)                                  │
+│   • Port Density: 0/40 - 4 open ports is normal                │
+│   • Banner Consistency: 0/30 - OS indicators consistent        │
+│   • Timing: 5/30 - Timing patterns appear normal               │
+╰────────────────────────────────────────────────────────────────╯
 
-### `data/os_fingerprints.json`
-OS detection patterns from banners.
-
-**To contribute:** Submit a Pull Request with your additions!
-
----
-
-## 🧪 Running Tests
-
-```bash
-pytest tests/ -v
+              Scan Results for 23.55.244.114
+┏━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Port ┃ State ┃ Service             ┃ Version/Banner           ┃
+┡━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│   80 │ OPEN  │ [HTTP] AkamaiGHost  │ HTTP/1.0 400 Bad Request │
+│  443 │ OPEN  │ [HTTP] AkamaiGHost  │ HTTP/1.0 400 Bad Request │
+└──────┴───────┴─────────────────────┴──────────────────────────┘
 ```
 
 ---
 
-## 📋 Example Output
+## Roadmap
 
-```
-╭───────────────────────────────── Honeypot Detection ─────────────────────────────────╮
-│ ✓ Honeypot Score: 5/100 (LOW)                                                        │
-│   • Port Density: 0/40 - 4 open ports is normal                                      │
-│   • Banner Consistency: 0/30 - OS indicators consistent                              │
-│   • Timing: 5/30 - Timing patterns appear normal                                     │
-╰──────────────────────────────────────────────────────────────────────────────────────╯
+| Feature | Status |
+|---------|--------|
+| UDP scanning | Planned |
+| IPv6 support | Planned |
+| Plugin-based analyzers | Planned |
+| PCAP-based timing analysis | Research |
+| Nmap NSE script compatibility | Research |
 
-                    Scan Results for 23.55.244.114 (OS: Unknown)
-┏━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┓
-┃ Port ┃ State ┃ Service                       ┃ Version/Banner                ┃ OS Guess ┃
-┡━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━┩
-│   80 │ OPEN  │ [HTTP] Server: AkamaiGHost    │ HTTP/1.0 400 Bad Request      │ Unknown  │
-│  443 │ OPEN  │ [HTTP] Server: AkamaiGHost    │ HTTP/1.0 400 Bad Request      │ Unknown  │
-└──────┴───────┴───────────────────────────────┴───────────────────────────────┴──────────┘
-
-Scan completed in 1.08 seconds.
-```
+See [docs/validation.md](docs/validation.md) for real-world test results.
 
 ---
 
-## 📜 License
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
----
+## Acknowledgments
 
-## 🙏 Acknowledgments
-
-- Inspired by [Nmap](https://nmap.org)
-- Built with [Rich](https://github.com/Textualize/rich) for beautiful terminal UI
-- Uses [Pydantic](https://pydantic-docs.helpmanual.io/) for configuration validation
+- Built with [Rich](https://github.com/Textualize/rich) for terminal UI
+- Uses [Pydantic](https://pydantic-docs.helpmanual.io/) for configuration

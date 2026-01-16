@@ -1,1 +1,6 @@
-# Argus package
+"""
+Argus - High-performance async port scanner with honeypot detection.
+"""
+
+__version__ = "1.0.0"
+__author__ = "Argus Contributors"
